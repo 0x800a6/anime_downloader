@@ -9,11 +9,17 @@ PYTHON_PATH="$(which python3)"
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VENV_PATH="$PROJECT_DIR/.venv/bin/python"
 MAIN_PATH="$PROJECT_DIR/src/main.py"
-DESKTOP_FILE="$PROJECT_DIR/anime_downloader.desktop"
-ICON_NAME="applications-multimedia"
+ICON_PATH="$PROJECT_DIR/assets/icon.png"
 CATEGORIES="AudioVideo;Video;"
 TERMINAL="false"
 STARTUP_NOTIFY="true"
+
+# Target directory for .desktop file
+DESKTOP_DIR="$HOME/.local/share/applications"
+DESKTOP_FILE="$DESKTOP_DIR/anime_downloader.desktop"
+
+# Ensure the target directory exists
+mkdir -p "$DESKTOP_DIR"
 
 # Use venv python if exists, else fallback to system python
 if [ -x "$VENV_PATH" ]; then
@@ -29,7 +35,7 @@ Type=Application
 Name=$APP_NAME
 Comment=$COMMENT
 Exec=$EXEC
-Icon=$ICON_NAME
+Icon=$ICON_PATH
 Terminal=$TERMINAL
 Categories=$CATEGORIES
 StartupNotify=$STARTUP_NOTIFY
@@ -37,7 +43,6 @@ EOF
 
 echo "Desktop entry generated at: $DESKTOP_FILE"
 
-# Optionally, make it executable and suggest installation
+# Optionally, make it executable
 chmod +x "$DESKTOP_FILE"
-echo "You can move it to ~/.local/share/applications/ to add it to your app menu:"
-echo "  mv \"$DESKTOP_FILE\" ~/.local/share/applications/"
+echo "It is now available in your app menu (you may need to refresh or re-login)."
