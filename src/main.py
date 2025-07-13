@@ -5,7 +5,9 @@ A modern GUI application for downloading anime using anipy-api
 """
 
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
+from tkinter import filedialog, messagebox
+import ttkbootstrap as tb
+from ttkbootstrap.constants import *
 import threading
 import os
 from pathlib import Path
@@ -20,12 +22,11 @@ from ttkthemes import ThemedTk
 
 class AnimeDownloaderGUI:
     def __init__(self):
-        # Create the main window with modern theme
-        self.root = ThemedTk(theme="arc")
+        # Create the main window with ttkbootstrap dark theme
+        self.root = tb.Window(themename="darkly")
         self.root.title("Anime Downloader")
         self.root.geometry("900x700")
         self.root.resizable(True, True)
-        
         # Variables
         self.search_results = []
         self.selected_anime = None
@@ -54,110 +55,72 @@ class AnimeDownloaderGUI:
     def create_widgets(self):
         """Create all GUI widgets"""
         # Main container
-        main_frame = ttk.Frame(self.root, padding="10")
+        main_frame = tb.Frame(self.root, padding=10)
         main_frame.grid(row=0, column=0, sticky="nsew")
-        
         # Title
-        title_label = ttk.Label(main_frame, text="Anime Downloader", 
-                               font=("Arial", 24, "bold"))
+        title_label = tb.Label(main_frame, text="Anime Downloader", font=("Segoe UI", 24, "bold"), bootstyle="info")
         title_label.grid(row=0, column=0, columnspan=3, pady=(0, 20), sticky=tk.W)
-        
         # Search frame
-        search_frame = ttk.LabelFrame(main_frame, text="Search Anime", padding="10")
+        search_frame = tb.Labelframe(main_frame, text="Search Anime", padding=10)
         search_frame.grid(row=1, column=0, columnspan=3, sticky="we", pady=(0, 10))
-        
-        # Search entry
-        ttk.Label(search_frame, text="Anime Name:").grid(row=0, column=0, sticky=tk.W, padx=(0, 10))
-        self.search_entry = ttk.Entry(search_frame, width=40, font=("Arial", 12))
+        tb.Label(search_frame, text="Anime Name:").grid(row=0, column=0, sticky=tk.W, padx=(0, 10))
+        self.search_entry = tb.Entry(search_frame, width=40, font=("Segoe UI", 12))
         self.search_entry.grid(row=0, column=1, sticky="we", padx=(0, 10))
         self.search_entry.bind('<Return>', lambda event: self.search_anime())
-        
-        # Search button
-        search_btn = ttk.Button(search_frame, text="Search", command=self.search_anime)
+        search_btn = tb.Button(search_frame, text="Search", command=self.search_anime, bootstyle="primary")
         search_btn.grid(row=0, column=2, padx=(10, 0))
-        
         # Results frame
-        results_frame = ttk.LabelFrame(main_frame, text="Search Results", padding="10")
+        results_frame = tb.Labelframe(main_frame, text="Search Results", padding=10)
         results_frame.grid(row=2, column=0, columnspan=3, sticky="nsew", pady=(0, 10))
-        
-        # Results listbox with scrollbar
-        results_scrollbar = ttk.Scrollbar(results_frame)
+        results_scrollbar = tb.Scrollbar(results_frame, bootstyle="round")
         results_scrollbar.grid(row=0, column=1, sticky="ns")
-        
-        self.results_listbox = tk.Listbox(results_frame, font=("Arial", 11), height=8,
-                                         yscrollcommand=results_scrollbar.set)
-        self.results_listbox.grid(row=0, column=0, sticky="nsew")
-        self.results_listbox.bind('<Double-1>', self.on_anime_select)
-        
-        results_scrollbar.config(command=self.results_listbox.yview)
-        
+        # Treeview for results
+        self.results_treeview = tb.Treeview(results_frame, columns=("Anime"), show="headings", height=8, bootstyle="dark")
+        self.results_treeview.heading("Anime", text="Anime (Languages)")
+        self.results_treeview.column("Anime", anchor="w", width=600, stretch=True)
+        self.results_treeview.grid(row=0, column=0, sticky="nsew")
+        self.results_treeview.bind('<Double-1>', self.on_anime_select)
+        results_scrollbar.config(command=self.results_treeview.yview)
+        self.results_treeview.config(yscrollcommand=results_scrollbar.set)
         # Anime details frame
-        details_frame = ttk.LabelFrame(main_frame, text="Anime Details", padding="10")
+        details_frame = tb.Labelframe(main_frame, text="Anime Details", padding=10)
         details_frame.grid(row=3, column=0, columnspan=3, sticky="we", pady=(0, 10))
-        
-        # Anime info labels
-        self.anime_title_label = ttk.Label(details_frame, text="Select an anime to see details", 
-                                          font=("Arial", 12, "bold"))
+        self.anime_title_label = tb.Label(details_frame, text="Select an anime to see details")
         self.anime_title_label.grid(row=0, column=0, columnspan=3, sticky=tk.W, pady=(0, 10))
-        
-        # Episodes frame
-        episodes_frame = ttk.Frame(details_frame)
+        episodes_frame = tb.Frame(details_frame)
         episodes_frame.grid(row=1, column=0, columnspan=3, sticky="we", pady=(0, 10))
-        
-        ttk.Label(episodes_frame, text="Episode:").grid(row=0, column=0, sticky=tk.W, padx=(0, 10))
-        self.episode_combobox = ttk.Combobox(episodes_frame, state="readonly", width=15)
+        tb.Label(episodes_frame, text="Episode:").grid(row=0, column=0, sticky=tk.W, padx=(0, 10))
+        self.episode_combobox = tb.Combobox(episodes_frame, state="readonly", width=15)
         self.episode_combobox.grid(row=0, column=1, sticky=tk.W, padx=(0, 20))
-        
-        ttk.Label(episodes_frame, text="Language:").grid(row=0, column=2, sticky=tk.W, padx=(0, 10))
-        self.language_combobox = ttk.Combobox(episodes_frame, state="readonly", width=15,
-                                            values=["SUB", "DUB"])
+        tb.Label(episodes_frame, text="Language:").grid(row=0, column=2, sticky=tk.W, padx=(0, 10))
+        self.language_combobox = tb.Combobox(episodes_frame, state="readonly", width=15, values=["SUB", "DUB"])
         self.language_combobox.grid(row=0, column=3, sticky=tk.W, padx=(0, 20))
         self.language_combobox.set("SUB")
-        
-        ttk.Label(episodes_frame, text="Quality:").grid(row=0, column=4, sticky=tk.W, padx=(0, 10))
-        self.quality_combobox = ttk.Combobox(episodes_frame, state="readonly", width=15,
-                                           values=["1080", "720", "480", "360"])
+        tb.Label(episodes_frame, text="Quality:").grid(row=0, column=4, sticky=tk.W, padx=(0, 10))
+        self.quality_combobox = tb.Combobox(episodes_frame, state="readonly", width=15, values=["1080", "720", "480", "360"])
         self.quality_combobox.grid(row=0, column=5, sticky=tk.W)
         self.quality_combobox.set("720")
-        
         # Download settings frame
-        download_frame = ttk.LabelFrame(main_frame, text="Download Settings", padding="10")
+        download_frame = tb.Labelframe(main_frame, text="Download Settings", padding=10)
         download_frame.grid(row=4, column=0, columnspan=3, sticky="we", pady=(0, 10))
-        
-        # Download path
-        ttk.Label(download_frame, text="Download Path:").grid(row=0, column=0, sticky=tk.W, padx=(0, 10))
-        self.path_entry = ttk.Entry(download_frame, textvariable=self.download_path, width=50)
+        tb.Label(download_frame, text="Download Path:").grid(row=0, column=0, sticky=tk.W, padx=(0, 10))
+        self.path_entry = tb.Entry(download_frame, textvariable=self.download_path, width=50)
         self.path_entry.grid(row=0, column=1, sticky="we", padx=(0, 10))
-        
-        browse_btn = ttk.Button(download_frame, text="Browse", command=self.browse_download_path)
+        browse_btn = tb.Button(download_frame, text="Browse", command=self.browse_download_path, bootstyle="secondary")
         browse_btn.grid(row=0, column=2)
-        
-        # Download buttons frame
-        buttons_frame = ttk.Frame(main_frame)
+        buttons_frame = tb.Frame(main_frame)
         buttons_frame.grid(row=5, column=0, columnspan=3, pady=(10, 0), sticky="we")
-        
-        # Download single episode button
-        self.download_episode_btn = ttk.Button(buttons_frame, text="Download Episode", 
-                                             command=self.download_episode, state=tk.DISABLED)
+        self.download_episode_btn = tb.Button(buttons_frame, text="Download Episode", command=self.download_episode, state=tk.DISABLED, bootstyle="primary")
         self.download_episode_btn.grid(row=0, column=0, padx=(0, 10))
-        
-        # Download all episodes button
-        self.download_all_btn = ttk.Button(buttons_frame, text="Download All Episodes", 
-                                         command=self.download_all_episodes, state=tk.DISABLED)
+        self.download_all_btn = tb.Button(buttons_frame, text="Download All Episodes", command=self.download_all_episodes, state=tk.DISABLED, bootstyle="primary")
         self.download_all_btn.grid(row=0, column=1, padx=(0, 10))
-        
-        # Progress frame
-        progress_frame = ttk.LabelFrame(main_frame, text="Download Progress", padding="10")
+        progress_frame = tb.Labelframe(main_frame, text="Download Progress", padding=10)
         progress_frame.grid(row=6, column=0, columnspan=3, sticky="we", pady=(10, 0))
-        
-        self.progress_label = ttk.Label(progress_frame, text="Ready to download")
+        self.progress_label = tb.Label(progress_frame, text="Ready to download")
         self.progress_label.grid(row=0, column=0, sticky=tk.W, pady=(0, 5))
-        
-        self.progress_bar = ttk.Progressbar(progress_frame, mode='determinate')
+        self.progress_bar = tb.Progressbar(progress_frame, mode='determinate', bootstyle="success-striped")
         self.progress_bar.grid(row=1, column=0, sticky="we")
-        
-        # Status bar
-        self.status_label = ttk.Label(main_frame, text="Ready", relief=tk.SUNKEN, anchor=tk.W)
+        self.status_label = tb.Label(main_frame, text="Ready", relief=tk.SUNKEN, anchor=tk.W)
         self.status_label.grid(row=7, column=0, columnspan=3, sticky="we", pady=(10, 0))
     
     def configure_grid(self):
@@ -172,32 +135,32 @@ class AnimeDownloaderGUI:
         
         # Results frame
         for child in main_frame.winfo_children():
-            if isinstance(child, ttk.LabelFrame) and child.cget('text') == 'Search Results':
+            if isinstance(child, tb.Labelframe) and child.cget('text') == 'Search Results':
                 child.columnconfigure(0, weight=1)
                 child.rowconfigure(0, weight=1)
                 break
         
         # Search frame
         for child in main_frame.winfo_children():
-            if isinstance(child, ttk.LabelFrame) and child.cget('text') == 'Search Anime':
+            if isinstance(child, tb.Labelframe) and child.cget('text') == 'Search Anime':
                 child.columnconfigure(1, weight=1)
                 break
         
         # Download frame
         for child in main_frame.winfo_children():
-            if isinstance(child, ttk.LabelFrame) and child.cget('text') == 'Download Settings':
+            if isinstance(child, tb.Labelframe) and child.cget('text') == 'Download Settings':
                 child.columnconfigure(1, weight=1)
                 break
         
         # Progress frame
         for child in main_frame.winfo_children():
-            if isinstance(child, ttk.LabelFrame) and child.cget('text') == 'Download Progress':
+            if isinstance(child, tb.Labelframe) and child.cget('text') == 'Download Progress':
                 child.columnconfigure(0, weight=1)
                 break
         
         # Buttons frame
         for child in main_frame.winfo_children():
-            if isinstance(child, ttk.Frame) and len(child.winfo_children()) > 1:
+            if isinstance(child, tb.Frame) and len(child.winfo_children()) > 1:
                 child.columnconfigure(0, weight=1)
                 child.columnconfigure(1, weight=1)
                 break
@@ -232,22 +195,22 @@ class AnimeDownloaderGUI:
     def update_search_results(self, results):
         """Update the search results listbox"""
         self.search_results = results
-        self.results_listbox.delete(0, tk.END)
+        self.results_treeview.delete(*self.results_treeview.get_children())
         
         for result in results:
             # Display anime name and available languages
             languages = ", ".join(lang.name for lang in result.languages)
             display_text = f"{result.name} ({languages})"
-            self.results_listbox.insert(tk.END, display_text)
+            self.results_treeview.insert("", tk.END, values=(display_text,))
         
         self.update_status(f"Found {len(results)} results")
     
     def on_anime_select(self, event):
         """Handle anime selection from results"""
-        selection = self.results_listbox.curselection()
+        selection = self.results_treeview.selection()
         if not selection:
             return
-        index = selection[0]
+        index = self.results_treeview.index(selection[0])
         if index >= len(self.search_results):
             return
         result = self.search_results[index]
@@ -394,9 +357,13 @@ class AnimeDownloaderGUI:
                     self.root.after(0, lambda: self.update_status(f"Warning: {message}"))
                 downloader = Downloader(progress_callback, info_callback, error_callback)
                 # Create download path
-                selection = self.results_listbox.curselection()
-                if selection and selection[0] < len(self.search_results):
-                    anime_name = getattr(self.search_results[selection[0]], 'name', 'Anime')
+                selection = self.results_treeview.selection()
+                if selection:
+                    index = self.results_treeview.index(selection[0])
+                else:
+                    index = None
+                if index is not None and index < len(self.search_results):
+                    anime_name = getattr(self.search_results[index], 'name', 'Anime')
                 elif self.selected_anime is not None:
                     anime_name = getattr(self.selected_anime, 'name', 'Anime')
                 else:
@@ -458,9 +425,13 @@ class AnimeDownloaderGUI:
                             pass  # Skip individual episode error messages
                         downloader = Downloader(progress_callback, info_callback, error_callback)
                         # Create download path
-                        selection = self.results_listbox.curselection()
-                        if selection and selection[0] < len(self.search_results):
-                            anime_name = getattr(self.search_results[selection[0]], 'name', 'Anime')
+                        selection = self.results_treeview.selection()
+                        if selection:
+                            index = self.results_treeview.index(selection[0])
+                        else:
+                            index = None
+                        if index is not None and index < len(self.search_results):
+                            anime_name = getattr(self.search_results[index], 'name', 'Anime')
                         elif self.selected_anime is not None:
                             anime_name = getattr(self.selected_anime, 'name', 'Anime')
                         else:

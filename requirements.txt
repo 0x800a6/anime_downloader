@@ -3,3 +3,4 @@ ttkthemes
 pillow
 requests
 colorama
+ttkbootstrap
