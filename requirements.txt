@@ -1,0 +1,5 @@
+anipy-api
+ttkthemes
+pillow
+requests
+colorama

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Anime Downloader
+Comment=Download anime episodes with a modern GUI
+Exec=/home/0x800a6/code/anime_downloader/.venv/bin/python /home/0x800a6/code/anime_downloader/src/main.py
+Icon=applications-multimedia
+Terminal=false
+Categories=AudioVideo;Video;
+StartupNotify=true
